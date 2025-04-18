@@ -12,7 +12,7 @@ BOOT_START="2048"
 ROOT_START="264192"
 
 # apt-get update &&
-apt-get install -y xz-utils libarchive-tools aria2
+sudo apt-get install -y xz-utils libarchive-tools aria2
 
 cd ${INSTALL_DIR} || exit
 mkdir mnt
