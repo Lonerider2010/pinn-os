@@ -3,7 +3,7 @@
 # Debian 9 8GB Silicon Valley
 
 # define variables
-INSTALL_DIR="/media/web/repos/gitlab/intern/Projects/dietpi/Software/"
+INSTALL_DIR="/media/web/repos/gitlab/intern/Foundation/dietpi/Software/"
 DIETPI_URL="https://dietpi.com/downloads/images/"
 DIETPI_IMG="DietPi_RPi5-ARMv8-Bookworm.img"
 BOOT_TAR="boot.tar"
