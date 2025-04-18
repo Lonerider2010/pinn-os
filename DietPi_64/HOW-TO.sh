@@ -3,62 +3,45 @@
 # Debian 9 8GB Silicon Valley
 
 # define variables
-INSTALL_DIR="/media/web/repos/gitlab/intern/Foundation/dietpi/Software/"
-DIETPI_URL="https://dietpi.com/downloads/images/"
-DIETPI_IMG="DietPi_RPi5-ARMv8-Bookworm.img"
-BOOT_TAR="boot.tar"
-ROOT_TAR="root.tar"
-BOOT_START="2048"
-ROOT_START="264192"
+install_dir="/media/web/repos/gitlab/intern/Foundation/dietpi/Software/"
+dietpi_url="https://dietpi.com/downloads/images/"
+dietpi_img="DietPi_RPi5-ARMv8-Bookworm.img"
+boot_tar="boot.tar"
+root_tar="root.tar"
 
-# apt-get update &&
-sudo apt-get install -y xz-utils libarchive-tools aria2
+apt-get update && apt-get install -y xz-utils libarchive-tools aria2
 
-cd ${INSTALL_DIR} || exit
-mkdir mnt
-aria2c -x 4 -s 4 ${DIETPI_URL}/${DIETPI_IMG}.xz
-unxz ${DIETPI_IMG}.xz
+cd ${install_dir} || exit
+aria2c -x 4 -s 4 ${dietpi_url}/${dietpi_img}.xz
+unxz ${dietpi_img}.xz
 
-fdisk -l ${DIETPI_IMG}
+fdisk -l ${dietpi_img}
 # Start Sector * Sector Size = Below Offsets
 
+loop_dev=$(losetup --find --show --partscan DietPi_RPi5-ARMv8-Bookworm.img)
+
 # boot tarball
-mount -o loop,ro,offset=$((${BOOT_START}*512)) ${DIETPI_IMG} mnt
-du -h -m --max-depth=0 mnt    #boot uncompressed_tarball_size
-cd mnt || exit
-bsdtar --numeric-owner --format gnutar -cpf ../${BOOT_TAR} .
-cd .. && umount mnt
-xz -T0 -9 -e ${BOOT_TAR}
+mount "${loop_dev}"p1 boot
+du -h -m --max-depth=0 boot    #boot uncompressed_tarball_size
+cd boot || exit
+bsdtar --numeric-owner --format gnutar -cpf ../${boot_tar} .
+cd .. && umount boot
+xz -T0 -9 -e ${boot_tar}
 
 # root tarball
-mount -o loop,ro,offset=$((${ROOT_START}*512)) ${DIETPI_IMG} mnt
-du -h -m --max-depth=0 mnt    #root uncompressed_tarball_size
-cd mnt || exit
+mount "${loop_dev}"p2 root
+du -h -m --max-depth=0 root    #root uncompressed_tarball_size
+cd root || exit
+bsdtar --numeric-owner --format gnutar --one-file-system -cpf ../${root_tar} .
 cat boot/dietpi/.version   #version = {G_DIETPI_VERSION_CORE}.{G_DIETPI_VERSION_SUB}.{G_DIETPI_VERSION_RC}
-bsdtar --numeric-owner --format gnutar --one-file-system -cpf ../${ROOT_TAR} .
-cd .. && umount mnt
-xz -T0 -9 -e ${ROOT_TAR}
+cd .. && umount root
+xz -T0 -9 -e ${root_tar}
 
-echo $(($(wc -c < ${BOOT_TAR}.xz) + $(wc -c < ${ROOT_TAR}.xz)))   #os.json download_size
+echo $(($(wc -c < ${boot_tar}.xz) + $(wc -c < ${root_tar}.xz)))   #os.json download_size
 
-sha512sum ${BOOT_TAR}.xz  #boot sha512sum
-sha512sum ${ROOT_TAR}.xz  #root sha512sum
+sha512sum ${boot_tar}.xz  #boot sha512sum
+sha512sum ${root_tar}.xz  #root sha512sum
 
-# Backup old & Upload new tarballs
-# sftp matthuisman@frs.sourceforge.net
-cd ${INSTALL_DIR}/OS || exit
-
-rm $BOOT_TAR.xz.bu
-rm $ROOT_TAR.xz.bu
-
-rename $BOOT_TAR.xz  $BOOT_TAR.xz.bu
-rename $ROOT_TAR.xz  $ROOT_TAR.xz.bu
-
-put $BOOT_TAR.xz
-put $ROOT_TAR.xz
-
-exit
-exit
-
+losetup -D ${loop_dev}
 # UPDATE os.json
 # UPDATE partitions.json
