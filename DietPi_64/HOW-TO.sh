@@ -25,6 +25,7 @@ release_date=$(date -r ${dietpi_img}.xz +"%Y-%m-%d")
 unxz ${dietpi_img}.xz
 
 fdisk -l ${dietpi_img}
+{ read boot_size; read root_size; } <<<  "$(fdisk -l DietPi_RPi5-ARMv8-Bookworm.img -o Size | tail -2)"
 # Start Sector * Sector Size = Below Offsets
 
 loop_dev=$(losetup --find --show --partscan DietPi_RPi5-ARMv8-Bookworm.img)
@@ -53,12 +54,12 @@ xz -T0 -9 -e ${root_tar}
 
 download_size=$(($(wc -c < ${boot_tar}.xz) + $(wc -c < ${root_tar}.xz)))   #os.json download_size
 
-b_sha512sum=$(sha512sum ${boot_tar}.xz)  #boot sha512sum
-r_sha512sum=$(sha512sum ${root_tar}.xz)  #root sha512sum
+b_sha512sum=$(sha512sum ${boot_tar}.xz | cut -f1)  #boot sha512sum
+r_sha512sum=$(sha512sum ${root_tar}.xz | cut -f1)  #root sha512sum
 
 losetup -D ${loop_dev}
 
-echo "Image\n====="
+echo -e "\nImage\n====="
 echo "name: ${name}"
 echo "version: ${version}"
 echo "release_date: ${release_date}"
@@ -69,17 +70,17 @@ echo "username: ${username}"
 echo "password: ${password}"
 echo "supports_backup: ${supports_backup}"
 echo "download_size: ${download_size}"
-echo "Boot partition\n=============="
+echo -e "\nBoot partition\n=============="
 echo "label: boot"
 echo "filesystem_type: FAT"
-echo "partition_size_nominal: "
+echo "partition_size_nominal: ${boot_size}"
 echo "want_maximised: false"
 echo "uncompressed_tarball_size: ${b_uncompressed_tarball_size}"
 echo "sha512sum: ${b_sha512sum}"
-echo "Root partition\n=============="
+echo -e "\nRoot partition\n=============="
 echo "label: root"
 echo "filesystem_type: ext4"
-echo "partition_size_nominal: "
+echo "partition_size_nominal: ${root_size}"
 echo "want_maximised: true"
 echo "mkfs_options: -O ^huge_file"
 echo "uncompressed_tarball_size: ${r_uncompressed_tarball_size}"
