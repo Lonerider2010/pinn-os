@@ -58,6 +58,14 @@ r_sha512sum=$(sha512sum ${root_tar}.xz | cut -d " " -f1)  #root sha512sum
 losetup -D ${loop_dev}
 
 # Data for os.json
+supported_models=(
+  "Pi Zero 2 W" \
+  "Pi Compute Module 3" \
+  "Pi Compute Module 4" \
+  "Pi 3" \
+  "Pi 4" \
+  "Pi 5"
+)
 image_string=$(jq -n \
     --arg name "$name" \
     --arg version "$version" \
@@ -67,13 +75,11 @@ image_string=$(jq -n \
     --arg group "$group" \
     --arg username "$username" \
     --arg password "$password" \
-    --arg supports_backup "$supports_backup" \
-    --arg download_size "$download_size" \
-    '{name: $name, version: $version, release_date: $release_date, \
-      description: $description, url: $url, group: $group, username: $username, \
-      password: $password, supports_backup: $supports_backup, \
-      download_size: $download_size}')
-echo "$image_string"
+    --argjson supports_backup "$supports_backup" \
+    --argjson download_size "$download_size" \
+    --argjson supported_models "$(jq -n '$ARGS.positional' --args "${supported_models[@]}")" \
+    '{name: $name, version: $version, release_date: $release_date, description: $description, url: $url, group: $group, username: $username, password: $password, supports_backup: $supports_backup, download_size: $download_size, supported_models: $supported_models}')
+echo "$image_string" | tee os.json
 
 # Data for partitions.json
 echo -e "\nBoot partition\n=============="
