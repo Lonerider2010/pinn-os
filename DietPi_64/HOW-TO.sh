@@ -1,13 +1,6 @@
 #!/usr/bin/env bash
 
-# Debian 9 8GB Silicon Valley
-
-# define variables
-install_dir="/media/web/repos/gitlab/intern/Foundation/dietpi/Software/"
-dietpi_img="DietPi_RPi5-ARMv8-Bookworm.img"
-boot_tar="boot.tar"
-root_tar="root.tar"
-
+# Define variables
 name="DietPi_64"
 description="Highly optimized minimal Debian OS (ARMv8 64-bit Bullseye)"
 url="http://dietpi.com/"
@@ -17,8 +10,14 @@ password="dietpi"
 supports_backup=true
 dietpi_url="${url}/downloads/images/"
 
+install_dir="/media/web/repos/gitlab/intern/Foundation/dietpi/Software/"
+dietpi_img="DietPi_RPi5-ARMv8-Bookworm.img"
+boot_tar="boot.tar"
+root_tar="root.tar"
+
 apt-get update && apt-get install -y xz-utils libarchive-tools aria2
 
+# Download image
 cd ${install_dir} || exit
 aria2c -x 4 -s 4 -R ${dietpi_url}/${dietpi_img}.xz
 release_date=$(date -r ${dietpi_img}.xz +"%Y-%m-%d")
@@ -26,11 +25,10 @@ unxz ${dietpi_img}.xz
 
 fdisk -l ${dietpi_img}
 { read boot_size; read root_size; } <<<  "$(fdisk -l DietPi_RPi5-ARMv8-Bookworm.img -o Size | tail -2)"
-# Start Sector * Sector Size = Below Offsets
 
 loop_dev=$(losetup --find --show --partscan DietPi_RPi5-ARMv8-Bookworm.img)
 
-# boot tarball
+# Boot tarball
 mount "${loop_dev}"p1 boot
 b_uncompressed_tarball_size=$(du -h -m --max-depth=0 boot | cut -f1)    #boot uncompressed_tarball_size
 cd boot || exit
@@ -38,7 +36,7 @@ bsdtar --numeric-owner --format gnutar -cpf ../${boot_tar} .
 cd .. && umount boot
 xz -T0 -9 -e ${boot_tar}
 
-# root tarball
+# Root tarball
 mount "${loop_dev}"p2 root
 r_uncompressed_tarball_size=$(du -h -m --max-depth=0 root | cut -f1)    #root uncompressed_tarball_size
 cd root || exit
@@ -59,6 +57,7 @@ r_sha512sum=$(sha512sum ${root_tar}.xz | cut -d " " -f1)  #root sha512sum
 
 losetup -D ${loop_dev}
 
+# Data for os.json
 echo -e "\nImage\n====="
 echo "name: ${name}"
 echo "version: ${version}"
@@ -70,6 +69,8 @@ echo "username: ${username}"
 echo "password: ${password}"
 echo "supports_backup: ${supports_backup}"
 echo "download_size: ${download_size}"
+
+# Data for partitions.json
 echo -e "\nBoot partition\n=============="
 echo "label: boot"
 echo "filesystem_type: FAT"
@@ -85,7 +86,3 @@ echo "want_maximised: true"
 echo "mkfs_options: -O ^huge_file"
 echo "uncompressed_tarball_size: ${r_uncompressed_tarball_size}"
 echo "sha512sum: ${r_sha512sum}"
-
-
-# UPDATE os.json
-# UPDATE partitions.json
