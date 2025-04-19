@@ -54,8 +54,8 @@ xz -T0 -9 -e ${root_tar}
 
 download_size=$(($(wc -c < ${boot_tar}.xz) + $(wc -c < ${root_tar}.xz)))   #os.json download_size
 
-b_sha512sum=$(sha512sum ${boot_tar}.xz | cut -f1)  #boot sha512sum
-r_sha512sum=$(sha512sum ${root_tar}.xz | cut -f1)  #root sha512sum
+b_sha512sum=$(sha512sum ${boot_tar}.xz | cut -d " " -f1)  #boot sha512sum
+r_sha512sum=$(sha512sum ${root_tar}.xz | cut -d " " -f1)  #root sha512sum
 
 losetup -D ${loop_dev}
 
