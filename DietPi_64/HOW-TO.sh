@@ -73,7 +73,7 @@ image_string=$(jq -n \
       description: description, url: url, group: group, username: username, \
       password: password, supports_backup: supports_backup, \
       download_size: download_size}')
-echo $image_string
+echo "$image_string"
 
 # Data for partitions.json
 echo -e "\nBoot partition\n=============="
