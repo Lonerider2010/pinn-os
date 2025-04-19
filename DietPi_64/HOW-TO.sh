@@ -58,17 +58,22 @@ r_sha512sum=$(sha512sum ${root_tar}.xz | cut -d " " -f1)  #root sha512sum
 losetup -D ${loop_dev}
 
 # Data for os.json
-echo -e "\nImage\n====="
-echo "name: ${name}"
-echo "version: ${version}"
-echo "release_date: ${release_date}"
-echo "description: ${description}"
-echo "url: ${url}"
-echo "group: ${group}"
-echo "username: ${username}"
-echo "password: ${password}"
-echo "supports_backup: ${supports_backup}"
-echo "download_size: ${download_size}"
+image_string=$(jq -n \
+    --arg name "${name}" \
+    --arg version "${version}" \
+    --arg release_date "${release_date}" \
+    --arg description "${description}" \
+    --arg url "${url}" \
+    --arg group "${group}" \
+    --arg username "${username}" \
+    --arg password "${password}" \
+    --arg supports_backup "${supports_backup}" \
+    --arg download_size "${download_size}" \
+    '{name: name, version: version, release_date: release_date, \
+      description: description, url: url, group: group, username: username, \
+      password: password, supports_backup: supports_backup, \
+      download_size: download_size}')
+echo $image_string
 
 # Data for partitions.json
 echo -e "\nBoot partition\n=============="
