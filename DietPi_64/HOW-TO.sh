@@ -34,7 +34,7 @@ b_uncompressed_tarball_size=$(du -h -m --max-depth=0 boot | cut -f1)    #boot un
 cd boot || exit
 bsdtar --numeric-owner --format gnutar -cpf ../${boot_tar} .
 cd .. && umount boot
-xz -T0 -9 -e ${boot_tar}
+xz -T1 -9 -e ${boot_tar} # T1 due to Raspi
 
 # Root tarball
 mount "${loop_dev}"p2 root
@@ -48,7 +48,7 @@ rc=${G_DIETPI_VERSION_RC}
 version="${core}.${sub}.${rc}"
 
 cd .. && umount root
-xz -T0 -9 -e ${root_tar}
+xz -T1 -9 -e ${root_tar} # T1 due to Raspi
 
 download_size=$(($(wc -c < ${boot_tar}.xz) + $(wc -c < ${root_tar}.xz)))   #os.json download_size
 
@@ -66,7 +66,7 @@ supported_models=(
   "Pi 4" \
   "Pi 5"
 )
-image_string=$(jq -n \
+image_string=$(jq -n --indent 4 \
     --arg name "$name" \
     --arg version "$version" \
     --arg release_date "$release_date" \
