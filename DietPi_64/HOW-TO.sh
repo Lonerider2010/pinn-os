@@ -59,16 +59,16 @@ losetup -D ${loop_dev}
 
 # Data for os.json
 image_string=$(jq -n \
-    --arg name "${name}" \
-    --arg version "${version}" \
-    --arg release_date "${release_date}" \
-    --arg description "${description}" \
-    --arg url "${url}" \
-    --arg group "${group}" \
-    --arg username "${username}" \
-    --arg password "${password}" \
-    --arg supports_backup "${supports_backup}" \
-    --arg download_size "${download_size}" \
+    --arg name "$name" \
+    --arg version "$version" \
+    --arg release_date "$release_date" \
+    --arg description "$description" \
+    --arg url "$url" \
+    --arg group "$group" \
+    --arg username "$username" \
+    --arg password "$password" \
+    --arg supports_backup "$supports_backup" \
+    --arg download_size "$download_size" \
     '{name: name, version: version, release_date: release_date, \
       description: description, url: url, group: group, username: username, \
       password: password, supports_backup: supports_backup, \
