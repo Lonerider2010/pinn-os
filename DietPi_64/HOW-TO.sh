@@ -15,14 +15,16 @@ dietpi_img="DietPi_RPi5-ARMv8-Bookworm.img"
 boot_tar="boot.tar"
 root_tar="root.tar"
 
+# Install packages needed
 apt-get update && apt-get install -y xz-utils libarchive-tools aria2
 
-# Download image
+# Download and unpack image
 cd ${install_dir} || exit
 aria2c -x 4 -s 4 -R ${dietpi_url}/${dietpi_img}.xz
 release_date=$(date -r ${dietpi_img}.xz +"%Y-%m-%d")
 unxz ${dietpi_img}.xz
 
+# Get partition sizes
 fdisk -l ${dietpi_img}
 { read boot_size; read root_size; } <<<  "$(fdisk -l DietPi_RPi5-ARMv8-Bookworm.img -o Size | tail -2)"
 boot_size_v=${boot_size::-1}
@@ -31,6 +33,8 @@ boot_size_p="$(($boot_size_i + 100))"
 root_size_v=${root_size::-1}
 root_size_i=$(echo $root_size_v | cut -d "," -f1)
 root_size_p="$(($root_size_i * 2))"
+
+# Mount loop device
 loop_dev=$(losetup --find --show --partscan DietPi_RPi5-ARMv8-Bookworm.img)
 
 # Boot tarball
@@ -44,9 +48,10 @@ xz -T1 -9 -e ${boot_tar} # T1 due to Raspi
 # Root tarball
 mount "${loop_dev}"p2 root
 r_uncompressed_tarball_size=$(du -h -m --max-depth=0 root | cut -f1)    #root uncompressed_tarball_size
-
 cd root || exit
 bsdtar --numeric-owner --format gnutar --one-file-system -cpf ../${root_tar} .
+
+# Get DietPi version
 . boot/dietpi/.version   #version = {G_DIETPI_VERSION_CORE}.{G_DIETPI_VERSION_SUB}.{G_DIETPI_VERSION_RC}
 core=${G_DIETPI_VERSION_CORE}
 sub=${G_DIETPI_VERSION_SUB}
@@ -56,14 +61,15 @@ version="v${core}.${sub}.${rc}"
 cd .. && umount root
 xz -T1 -9 -e ${root_tar} # T1 due to Raspi
 
+# Get meta data
 download_size=$(($(wc -c < ${boot_tar}.xz) + $(wc -c < ${root_tar}.xz)))   #os.json download_size
-
 b_sha512sum=$(sha512sum ${boot_tar}.xz | cut -d " " -f1)  #boot sha512sum
 r_sha512sum=$(sha512sum ${root_tar}.xz | cut -d " " -f1)  #root sha512sum
 
+# Unmount loop device
 losetup -D ${loop_dev}
 
-# Data for os.json
+# Create os.json
 supported_models=(
   "Pi Zero 2 W" \
   "Pi Compute Module 3" \
@@ -99,7 +105,7 @@ image_string=$(jq -n --indent 4 \
       }')
 echo "$image_string" | tee os.json
 
-# Data for partitions.json
+# Create partitions.json
 partition_string=$(jq -n --indent 2 \
     --arg b_label "boot" \
     --arg b_filesystem_type "FAT" \
@@ -135,6 +141,5 @@ partition_string=$(jq -n --indent 2 \
           "sha512sum": $r_sha512sum
         }
       ]
-    }
-    ')
+     }')
 echo "$partition_string" | tee partitions.json
