@@ -2,7 +2,7 @@
 
 # Define variables
 name="DietPi_64"
-description="Highly optimized minimal Debian OS (ARMv8 64-bit Bullseye)"
+description="Highly optimized minimal Debian OS (ARMv8 64-bit Bookworm)"
 url="http://dietpi.com/"
 group="Minimal"
 username="root"
