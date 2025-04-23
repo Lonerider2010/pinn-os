@@ -239,7 +239,8 @@
                 "Pi Compute Module 3",
                 "Pi Compute Module 4",
                 "Pi 3",
-                "Pi 4"
+                "Pi 4",
+                "Pi 5"
             ],
             "supports_backup": true,
             "tarballs": [
